@@ -27,11 +27,15 @@ public class Agent {
                     try {
                         ClassPool cp = ClassPool.getDefault();
                         CtClass cc = cp.get("other.Stuff");
-                        CtMethod m = cc.getDeclaredMethod("run");
+                        CtMethod m = cc.getDeclaredMethod("execute");
                         m.addLocalVariable("elapsedTime", CtClass.longType);
+                        m.insertBefore("{ System.out.println(\"Before executing 'execute' method.\"); }");
+
                         m.insertBefore("elapsedTime = System.currentTimeMillis();");
                         m.insertAfter("{elapsedTime = System.currentTimeMillis() - elapsedTime;"
                                 + "System.out.println(\"Method Executed in ms: \" + elapsedTime);}");
+                        m.insertAfter("{ System.out.println(\"After executing 'execute' method.\"); }");
+
                         byte[] byteCode = cc.toBytecode();
                         cc.detach();
                         return byteCode;
