@@ -28,14 +28,7 @@ public class Agent {
                         ClassPool cp = ClassPool.getDefault();
                         CtClass cc = cp.get("other.Stuff");
                         CtMethod m = cc.getDeclaredMethod("execute");
-                        m.addLocalVariable("elapsedTime", CtClass.longType);
-                        m.insertBefore("{ System.out.println(\"Before executing 'execute' method.\"); }");
-
-                        m.insertBefore("elapsedTime = System.currentTimeMillis();");
-                        m.insertAfter("{elapsedTime = System.currentTimeMillis() - elapsedTime;"
-                                + "System.out.println(\"Method Executed in ms: \" + elapsedTime);}");
-                        m.insertAfter("{ System.out.println(\"After executing 'execute' method.\"); }");
-
+                        m.insertBefore("{ Thread.dumpStack(); }");
                         byte[] byteCode = cc.toBytecode();
                         cc.detach();
                         return byteCode;
@@ -48,6 +41,8 @@ public class Agent {
             }
         });
     }
+
+
 
 }
 
