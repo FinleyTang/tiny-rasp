@@ -14,33 +14,42 @@ public class Agent {
         inst.addTransformer(new ClassFileTransformer() {
             @Override
             public byte[] transform(ClassLoader classLoader, String s, Class<?> aClass, ProtectionDomain protectionDomain, byte[] bytes) throws IllegalClassFormatException {
+//                System.out.println("Class: " + s);
+                // 拦截 Runtime.exec()  似乎没有用到
+                if ("java/lang/Runtime".equals(s)) {
+                    System.out.println("Captured Runtime class");
 
-                if ("other/Stuff".equals(s)) {
-                    // ASM Code
-//                    ClassReader reader = new ClassReader(bytes);
-//                    ClassWriter writer = new ClassWriter(reader, 0);
-//                    ClassPrinter visitor = new ClassPrinter(writer);
-//                    reader.accept(visitor, 0);
-//                    return writer.toByteArray();
-
-                    // Javassist
                     try {
-                        ClassPool cp = ClassPool.getDefault();
-                        CtClass cc = cp.get("other.Stuff");
-//                        CtMethod m = cc.getDeclaredMethod("execute");
-//                        m.insertBefore("{ Thread.dumpStack(); }");
+                        ClassPool pool = ClassPool.getDefault();
+                        CtClass runtimeClass = pool.get("java.lang.Runtime");
 
-                        CtMethod m_add = cc.getDeclaredMethod("add");
-//                        m_add.insertBefore("{" +
-//                                "System.out.println(\"add(\" + $1 + \")\");" +
-//                                "}");
-                        m_add.insertBefore("System.out.println( $1);");
-                        m_add.insertBefore(" $1 = 5;");
-//                        m_add.insertBefore("System.out.println(\"add(\" + $1 + \")\");");
+                        // 获取 exec(String) 方法
+                        CtMethod execMethod = runtimeClass.getDeclaredMethod("exec", new CtClass[] {pool.get("java.lang.String")});
 
+                        // 插桩，打印命令信息
+                        execMethod.insertBefore("{ System.out.println(\"Runtime exec command: \" + $1); }");
 
-                        byte[] byteCode = cc.toBytecode();
-                        cc.detach();
+                        byte[] byteCode = runtimeClass.toBytecode();
+                        runtimeClass.detach();
+                        return byteCode;
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+
+                if ("java/lang/ProcessBuilder".equals(s)) {
+                    System.out.println("Captured ProcessBuilder class");
+
+                    try {
+                        ClassPool pool = ClassPool.getDefault();
+                        CtClass processBuilderClass = pool.get("java.lang.ProcessBuilder");
+                        CtMethod startMethod = processBuilderClass.getDeclaredMethod("start");
+
+                        // 插桩，打印方法调用的日志
+                        startMethod.insertBefore("{ System.out.println(\"ProcessBuilder start method called\"); }");
+
+                        byte[] byteCode = processBuilderClass.toBytecode();
+                        processBuilderClass.detach();
                         return byteCode;
                     } catch (Exception ex) {
                         ex.printStackTrace();
