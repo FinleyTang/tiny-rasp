@@ -46,8 +46,12 @@ public class Agent {
                         CtMethod startMethod = processBuilderClass.getDeclaredMethod("start");
 
                         // 插桩，打印方法调用的日志
-                        startMethod.insertBefore("{ System.out.println(\"ProcessBuilder start method called\"); }");
-
+//                        startMethod.insertBefore("{ System.out.println(\"ProcessBuilder start method called\"); }");
+                        // 插桩，打印命令和启动日志
+                        startMethod.insertBefore("{ " +
+                                "System.out.println(\"ProcessBuilder command \" );" +
+                                "new Exception(\"Call stack:\").printStackTrace();" +
+                                "}");
                         byte[] byteCode = processBuilderClass.toBytecode();
                         processBuilderClass.detach();
                         return byteCode;
