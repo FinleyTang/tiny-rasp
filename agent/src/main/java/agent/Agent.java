@@ -27,8 +27,18 @@ public class Agent {
                     try {
                         ClassPool cp = ClassPool.getDefault();
                         CtClass cc = cp.get("other.Stuff");
-                        CtMethod m = cc.getDeclaredMethod("execute");
-                        m.insertBefore("{ Thread.dumpStack(); }");
+//                        CtMethod m = cc.getDeclaredMethod("execute");
+//                        m.insertBefore("{ Thread.dumpStack(); }");
+
+                        CtMethod m_add = cc.getDeclaredMethod("add");
+//                        m_add.insertBefore("{" +
+//                                "System.out.println(\"add(\" + $1 + \")\");" +
+//                                "}");
+                        m_add.insertBefore("System.out.println( $1);");
+                        m_add.insertBefore(" $1 = 5;");
+//                        m_add.insertBefore("System.out.println(\"add(\" + $1 + \")\");");
+
+
                         byte[] byteCode = cc.toBytecode();
                         cc.detach();
                         return byteCode;
