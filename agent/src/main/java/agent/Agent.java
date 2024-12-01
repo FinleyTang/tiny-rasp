@@ -43,15 +43,16 @@ public class Agent {
                     try {
                         ClassPool pool = ClassPool.getDefault();
                         CtClass processBuilderClass = pool.get("java.lang.ProcessBuilder");
+
+                        // 获取 start() 方法
                         CtMethod startMethod = processBuilderClass.getDeclaredMethod("start");
 
-                        // 插桩，打印方法调用的日志
-//                        startMethod.insertBefore("{ System.out.println(\"ProcessBuilder start method called\"); }");
-                        // 插桩，打印命令和启动日志
+                        // 插入代码来打印命令
                         startMethod.insertBefore("{ " +
-                                "System.out.println(\"ProcessBuilder command \" );" +
+                                "System.out.println(\"ProcessBuilder command: \" + this.command().toString());" +  // 使用 toString() 打印命令列表
                                 "new Exception(\"Call stack:\").printStackTrace();" +
                                 "}");
+
                         byte[] byteCode = processBuilderClass.toBytecode();
                         processBuilderClass.detach();
                         return byteCode;
